@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Magnetic Words - Shareable Output</title>
+  <!-- Load W3.CSS -->
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <style>
+    #svgContainer {
+      border: 1px solid #ccc;
+      overflow: auto;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    textarea {
+      resize: vertical;
+    }
+  </style>
+</head>
+<body class="w3-light-grey">
+
+  <!-- Settings Panel (Advanced Controls) -->
+  <div id="settingsPanel" class="w3-container w3-padding-large">
+    <h2 class="w3-text-teal">Magnetic Words - Settings</h2>
+    <div class="w3-card-4 w3-white w3-margin-bottom">
+      <div class="w3-container w3-padding">
+        <!-- Input Area -->
+        <label for="wordsInput" class="w3-text-teal"><strong>Words (space-separated):</strong></label>
+        <textarea id="wordsInput" class="w3-input w3-border" placeholder="Enter your words here...">Hello, world! Test, example. More words?</textarea>
+        <div class="w3-row-padding w3-margin-top">
+          <div class="w3-col s6">
+            <label for="pageWidth" class="w3-text-teal"><strong>Page Width (mm):</strong></label>
+            <input type="number" id="pageWidth" class="w3-input w3-border" value="210" min="10" />
+          </div>
+          <div class="w3-col s6">
+            <label for="pageHeight" class="w3-text-teal"><strong>Page Height (mm):</strong></label>
+            <input type="number" id="pageHeight" class="w3-input w3-border" value="297" min="10" />
+          </div>
+        </div>
+        <div class="w3-row-padding w3-margin-top">
+          <div class="w3-col s4">
+            <label for="rectHeight" class="w3-text-teal"><strong>Rect Height (mm):</strong></label>
+            <input type="number" id="rectHeight" class="w3-input w3-border" value="10" min="1" />
+          </div>
+          <div class="w3-col s4">
+            <label for="fontSize" class="w3-text-teal"><strong>Text Height (mm):</strong></label>
+            <input type="number" id="fontSize" class="w3-input w3-border" value="5" min="1" />
+          </div>
+          <div class="w3-col s4">
+            <label for="baselineOffset" class="w3-text-teal"><strong>Baseline Offset (mm):</strong></label>
+            <input type="number" id="baselineOffset" class="w3-input w3-border" value="1" min="0" />
+          </div>
+        </div>
+        <div class="w3-row-padding w3-margin-top">
+          <div class="w3-col s6">
+            <label for="paddingLR" class="w3-text-teal"><strong>Padding L/R (mm):</strong></label>
+            <input type="number" id="paddingLR" class="w3-input w3-border" value="3" min="0" />
+          </div>
+          <div class="w3-col s6">
+            <label for="paddingTolerance" class="w3-text-teal"><strong>Padding Tolerance (%)</strong></label>
+            <input type="number" id="paddingTolerance" class="w3-input w3-border" value="10" min="0" step="1" />
+          </div>
+        </div>
+        <div class="w3-row-padding w3-margin-top">
+          <div class="w3-col s4">
+            <label for="fillColor" class="w3-text-teal"><strong>Fill Color:</strong></label>
+            <input type="color" id="fillColor" class="w3-input" value="#ffffff" />
+          </div>
+          <div class="w3-col s4">
+            <label for="strokeColor" class="w3-text-teal"><strong>Stroke Color:</strong></label>
+            <input type="color" id="strokeColor" class="w3-input" value="#000000" />
+          </div>
+          <div class="w3-col s4">
+            <label for="strokeWidth" class="w3-text-teal"><strong>Stroke Width (mm):</strong></label>
+            <input type="number" id="strokeWidth" class="w3-input w3-border" value="0.3" min="0" step="0.1" />
+          </div>
+        </div>
+        <div class="w3-row-padding w3-margin-top">
+          <div class="w3-col s6">
+            <label for="fontFamily" class="w3-text-teal"><strong>Font:</strong></label>
+            <select id="fontFamily" class="w3-select w3-border">
+              <option value="Arial">Arial</option>
+              <option value="Helvetica">Helvetica</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Courier New">Courier New</option>
+              <option value="Georgia">Georgia</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Advanced Buttons -->
+    <div class="w3-container w3-margin-bottom">
+      <button id="generateBtn" class="w3-button w3-teal w3-margin-bottom">Generate Magnets</button>
+      <button id="nestEqualBtn" class="w3-button w3-blue w3-margin-bottom">Nest (Equal Rows, Greedy)</button>
+      <button id="startIterBtn" class="w3-button w3-green w3-margin-bottom">Start Iterative Nesting</button>
+      <button id="stopIterBtn" class="w3-button w3-red w3-margin-bottom">Stop Iterative Nesting</button>
+      <button id="magicPaddingBtn" class="w3-button w3-orange w3-margin-bottom">Magic Padding</button>
+      <button id="shareOutputBtn" class="w3-button w3-border w3-margin-bottom">Share Output</button>
+      <button id="scaleBtn" class="w3-button w3-purple w3-margin-bottom">Scale to Fit</button>
+      <button id="exportSvgBtn" class="w3-button w3-border w3-margin-bottom">Export SVG</button>
+      <button id="exportPdfBtn" class="w3-button w3-border w3-margin-bottom">Export PDF (Vectorized)</button>
+      <div id="progressIndicator" class="w3-panel w3-pale-blue w3-leftbar w3-border-blue">
+        Progress: Not started.
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimal Actions (Shown when shared state is loaded) -->
+  <div id="minimalActions" class="w3-container w3-margin-bottom w3-hide">
+    <button id="minimalExportSvgBtn" class="w3-button w3-border w3-margin-bottom">Save SVG</button>
+    <button id="minimalExportPdfBtn" class="w3-button w3-border w3-margin-bottom">Save PDF</button>
+    <button id="minimalEditButton" class="w3-button w3-border w3-margin-bottom">Edit text / parameters</button>
+  </div>
+
+  <!-- SVG Output Container -->
+  <div class="w3-container w3-white" id="svgContainer">
+    <svg id="magnets" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
+  </div>
+
+  <!-- Include jsPDF and svg2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/svg2pdf.js@latest/dist/svg2pdf.min.js"></script>
+  <script>
+    const mmToPx = 96 / 25.4;
+
+    // ---------------------------
+    // URL Parameter Functionality
+    // ---------------------------
+    function updateURLParameters() {
+      const params = {
+        words: document.getElementById('wordsInput').value,
+        pageWidth: document.getElementById('pageWidth').value,
+        pageHeight: document.getElementById('pageHeight').value,
+        rectHeight: document.getElementById('rectHeight').value,
+        fontSize: document.getElementById('fontSize').value,
+        baselineOffset: document.getElementById('baselineOffset').value,
+        paddingLR: document.getElementById('paddingLR').value,
+        paddingTolerance: document.getElementById('paddingTolerance').value,
+        fillColor: document.getElementById('fillColor').value,
+        strokeColor: document.getElementById('strokeColor').value,
+        strokeWidth: document.getElementById('strokeWidth').value,
+        fontFamily: document.getElementById('fontFamily').value
+      };
+      const query = Object.keys(params)
+        .map(key => key + '=' + encodeURIComponent(params[key]))
+        .join('&');
+      history.replaceState(null, '', '?' + query);
+    }
+
+    function loadParametersFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('words')) document.getElementById('wordsInput').value = decodeURIComponent(params.get('words'));
+      if (params.has('pageWidth')) document.getElementById('pageWidth').value = params.get('pageWidth');
+      if (params.has('pageHeight')) document.getElementById('pageHeight').value = params.get('pageHeight');
+      if (params.has('rectHeight')) document.getElementById('rectHeight').value = params.get('rectHeight');
+      if (params.has('fontSize')) document.getElementById('fontSize').value = params.get('fontSize');
+      if (params.has('baselineOffset')) document.getElementById('baselineOffset').value = params.get('baselineOffset');
+      if (params.has('paddingLR')) document.getElementById('paddingLR').value = params.get('paddingLR');
+      if (params.has('paddingTolerance')) document.getElementById('paddingTolerance').value = params.get('paddingTolerance');
+      if (params.has('fillColor')) document.getElementById('fillColor').value = params.get('fillColor');
+      if (params.has('strokeColor')) document.getElementById('strokeColor').value = params.get('strokeColor');
+      if (params.has('strokeWidth')) document.getElementById('strokeWidth').value = params.get('strokeWidth');
+      if (params.has('fontFamily')) document.getElementById('fontFamily').value = params.get('fontFamily');
+      // Check for a shared state
+      if (params.has('state')) {
+        try {
+          const stateData = JSON.parse(atob(params.get('state')));
+          currentRows = stateData;
+          drawRows(currentRows);
+          updateProgressIndicator("Loaded shared state with " + currentRows.length + " rows.");
+          return true;
+        } catch(e) {
+          console.error("Failed to load state:", e);
+        }
+      }
+      return false;
+    }
+
+    function addParameterListeners() {
+      const ids = ['wordsInput','pageWidth','pageHeight','rectHeight','fontSize','baselineOffset','paddingLR','paddingTolerance','fillColor','strokeColor','strokeWidth','fontFamily'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', () => {
+          updateURLParameters();
+          generateMagnets();
+        });
+        el.addEventListener('change', () => {
+          updateURLParameters();
+          generateMagnets();
+        });
+      });
+    }
+
+    // ---------------------------
+    // Drawing Functions
+    // ---------------------------
+    function splitIntoWords(text) {
+      return text.split(/([\s.,!?]+)/)
+                 .map(w => w.trim())
+                 .filter(w => w.length > 0);
+    }
+
+    function generateMagnets() {
+      const words = splitIntoWords(document.getElementById('wordsInput').value);
+      const pageWidthPx = parseFloat(document.getElementById('pageWidth').value) * mmToPx;
+      const pageHeightPx = parseFloat(document.getElementById('pageHeight').value) * mmToPx;
+      const rectHeightPx = parseFloat(document.getElementById('rectHeight').value) * mmToPx;
+      const fontSizePx = parseFloat(document.getElementById('fontSize').value) * mmToPx;
+      const baselineOffsetPx = parseFloat(document.getElementById('baselineOffset').value) * mmToPx;
+      const paddingLRPx = parseFloat(document.getElementById('paddingLR').value) * mmToPx;
+      const strokeWidthPx = parseFloat(document.getElementById('strokeWidth').value) * mmToPx;
+      const fillColor = document.getElementById('fillColor').value;
+      const strokeColor = document.getElementById('strokeColor').value;
+      const fontFamily = document.getElementById('fontFamily').value;
+      
+      const svg = document.getElementById('magnets');
+      svg.setAttribute('width', pageWidthPx);
+      svg.setAttribute('height', pageHeightPx);
+      while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+      
+      const measureText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      measureText.setAttribute('font-size', fontSizePx);
+      measureText.setAttribute('font-family', fontFamily);
+      measureText.setAttribute('visibility', 'hidden');
+      svg.appendChild(measureText);
+      
+      let x = 0, y = 0;
+      words.forEach(word => {
+        measureText.textContent = word;
+        const textWidth = measureText.getBBox().width;
+        const magnetWidth = textWidth + paddingLRPx * 2;
+        if (x + magnetWidth > pageWidthPx) { x = 0; y += rectHeightPx; }
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute('x', x);
+        rect.setAttribute('y', y);
+        rect.setAttribute('width', magnetWidth);
+        rect.setAttribute('height', rectHeightPx);
+        rect.setAttribute('fill', fillColor);
+        rect.setAttribute('stroke', strokeColor);
+        rect.setAttribute('stroke-width', strokeWidthPx);
+        g.appendChild(rect);
+        const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        textEl.setAttribute('x', x + paddingLRPx);
+        textEl.setAttribute('y', y + (rectHeightPx - fontSizePx) / 2 + fontSizePx - baselineOffsetPx);
+        textEl.setAttribute('font-size', fontSizePx);
+        textEl.setAttribute('font-family', fontFamily);
+        textEl.setAttribute('fill', '#000');
+        textEl.textContent = word;
+        g.appendChild(textEl);
+        svg.appendChild(g);
+        x += magnetWidth;
+      });
+      svg.removeChild(measureText);
+    }
+
+    function computeInitialEqualRows() {
+      const words = splitIntoWords(document.getElementById('wordsInput').value);
+      const pageWidthPx = parseFloat(document.getElementById('pageWidth').value) * mmToPx;
+      const paddingLRPx = parseFloat(document.getElementById('paddingLR').value) * mmToPx;
+      const tolerancePct = parseFloat(document.getElementById('paddingTolerance').value) / 100;
+      const fontSizePx = parseFloat(document.getElementById('fontSize').value) * mmToPx;
+      const svg = document.getElementById('magnets');
+      const fontFamily = document.getElementById('fontFamily').value;
+      const measureText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      measureText.setAttribute('font-size', fontSizePx);
+      measureText.setAttribute('font-family', fontFamily);
+      measureText.setAttribute('visibility', 'hidden');
+      svg.appendChild(measureText);
+      let magnets = words.map(word => {
+        measureText.textContent = word;
+        const textWidth = measureText.getBBox().width;
+        return {
+          word: word,
+          baseWidth: textWidth,
+          padding: paddingLRPx,
+          minPadding: paddingLRPx * (1 - tolerancePct),
+          maxPadding: paddingLRPx * (1 + tolerancePct),
+          width: textWidth + 2 * paddingLRPx
+        };
+      });
+      svg.removeChild(measureText);
+      magnets.sort((a, b) => b.width - a.width);
+      let rows = [];
+      magnets.forEach(magnet => {
+        let placed = false;
+        rows.sort((a, b) => a.total - b.total);
+        for (let row of rows) {
+          if (row.total + magnet.width <= pageWidthPx) {
+            row.magnets.push(magnet);
+            row.total += magnet.width;
+            placed = true;
+            break;
+          }
+        }
+        if (!placed) {
+          rows.push({ magnets: [magnet], total: magnet.width });
+        }
+      });
+      rows.forEach(row => {
+        row.magnets.sort((a, b) => a.width - b.width);
+      });
+      updateProgressIndicator("Initial partition: " + rows.length + " rows.");
+      return rows;
+    }
+
+    function drawRows(rows) {
+      const pageWidthPx = parseFloat(document.getElementById('pageWidth').value) * mmToPx;
+      const rectHeightPx = parseFloat(document.getElementById('rectHeight').value) * mmToPx;
+      const fontSizePx = parseFloat(document.getElementById('fontSize').value) * mmToPx;
+      const baselineOffsetPx = parseFloat(document.getElementById('baselineOffset').value) * mmToPx;
+      const strokeWidthPx = parseFloat(document.getElementById('strokeWidth').value) * mmToPx;
+      const fillColor = document.getElementById('fillColor').value;
+      const strokeColor = document.getElementById('strokeColor').value;
+      const fontFamily = document.getElementById('fontFamily').value;
+      const svg = document.getElementById('magnets');
+      svg.setAttribute('width', pageWidthPx);
+      while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+      let y = 0;
+      rows.forEach(row => {
+        let x = 0;
+        row.magnets.forEach(magnet => {
+          let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          let rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute('x', x);
+          rect.setAttribute('y', y);
+          rect.setAttribute('width', magnet.width);
+          rect.setAttribute('height', rectHeightPx);
+          rect.setAttribute('fill', fillColor);
+          rect.setAttribute('stroke', strokeColor);
+          rect.setAttribute('stroke-width', strokeWidthPx);
+          g.appendChild(rect);
+          let textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute('x', x + magnet.padding);
+          textEl.setAttribute('y', y + (rectHeightPx - fontSizePx) / 2 + fontSizePx - baselineOffsetPx);
+          textEl.setAttribute('font-size', fontSizePx);
+          textEl.setAttribute('font-family', fontFamily);
+          textEl.setAttribute('fill', '#000');
+          textEl.textContent = magnet.word;
+          g.appendChild(textEl);
+          svg.appendChild(g);
+          x += magnet.width;
+        });
+        y += rectHeightPx;
+      });
+      svg.setAttribute('height', y);
+    }
+
+    function computeCost(rows) {
+      const totals = rows.map(row => row.total);
+      const avg = totals.reduce((sum, t) => sum + t, 0) / totals.length;
+      return totals.reduce((cost, t) => cost + Math.pow(t - avg, 2), 0);
+    }
+
+    let currentRows = null;
+    let currentCost = Infinity;
+    let hillClimbInterval = null;
+    let iterationCount = 0;
+
+    function updateProgressIndicator(message) {
+      document.getElementById('progressIndicator').textContent =
+        "Iterations: " + iterationCount + " | Cost: " + currentCost.toFixed(2) + " | " + message;
+    }
+
+    // Hill climbing iteration: Only swaps are allowed.
+    function hillClimbIteration() {
+      if (!currentRows || currentRows.length < 2) return;
+      const pageWidthPx = parseFloat(document.getElementById('pageWidth').value) * mmToPx;
+      let action = Math.random() < 0.5 ? 'swapOne' : 'swapGroup';
+      if (action === 'swapOne') {
+        let rowIndices = [...Array(currentRows.length).keys()];
+        rowIndices.sort(() => Math.random() - 0.5);
+        const i = rowIndices[0], j = rowIndices[1];
+        const rowA = currentRows[i];
+        const rowB = currentRows[j];
+        if (rowA.magnets.length === 0 || rowB.magnets.length === 0) return;
+        const idxA = Math.floor(Math.random() * rowA.magnets.length);
+        const idxB = Math.floor(Math.random() * rowB.magnets.length);
+        const magnetA = rowA.magnets[idxA];
+        const magnetB = rowB.magnets[idxB];
+        const newTotalA = rowA.total - magnetA.width + magnetB.width;
+        const newTotalB = rowB.total - magnetB.width + magnetA.width;
+        if (newTotalA > pageWidthPx || newTotalB > pageWidthPx) return;
+        rowA.magnets[idxA] = magnetB;
+        rowB.magnets[idxB] = magnetA;
+        const oldTotalA = rowA.total, oldTotalB = rowB.total;
+        rowA.total = newTotalA;
+        rowB.total = newTotalB;
+        const newCost = computeCost(currentRows);
+        if (newCost < currentCost) {
+          currentCost = newCost;
+          currentRows.forEach(row => row.magnets.sort((a, b) => a.width - b.width));
+          drawRows(currentRows);
+        } else {
+          rowA.magnets[idxA] = magnetA;
+          rowB.magnets[idxB] = magnetB;
+          rowA.total = oldTotalA;
+          rowB.total = oldTotalB;
+        }
+      } else if (action === 'swapGroup') {
+        let rowIndices = [...Array(currentRows.length).keys()];
+        rowIndices.sort(() => Math.random() - 0.5);
+        const i = rowIndices[0], j = rowIndices[1];
+        const rowA = currentRows[i];
+        const rowB = currentRows[j];
+        if (rowA.magnets.length < 2 || rowB.magnets.length < 2) return;
+        const startA = Math.floor(Math.random() * rowA.magnets.length);
+        const endA = startA + Math.floor(Math.random() * (rowA.magnets.length - startA));
+        const groupA = rowA.magnets.slice(startA, endA + 1);
+        const sumA = groupA.reduce((s, m) => s + m.width, 0);
+        const startB = Math.floor(Math.random() * rowB.magnets.length);
+        const endB = startB + Math.floor(Math.random() * (rowB.magnets.length - startB));
+        const groupB = rowB.magnets.slice(startB, endB + 1);
+        const sumB = groupB.reduce((s, m) => s + m.width, 0);
+        const newTotalA = rowA.total - sumA + sumB;
+        const newTotalB = rowB.total - sumB + sumA;
+        if (newTotalA > pageWidthPx || newTotalB > pageWidthPx) return;
+        const oldRowA = rowA.magnets.slice();
+        const oldRowB = rowB.magnets.slice();
+        rowA.magnets.splice(startA, groupA.length, ...groupB);
+        rowB.magnets.splice(startB, groupB.length, ...groupA);
+        rowA.total = oldRowA.reduce((s, m, idx) => s + ((idx >= startA && idx < startA + groupA.length) ? 0 : m.width), 0) + sumB;
+        rowB.total = oldRowB.reduce((s, m, idx) => s + ((idx >= startB && idx < startB + groupB.length) ? 0 : m.width), 0) + sumA;
+        const newCost = computeCost(currentRows);
+        if (newCost < currentCost) {
+          currentCost = newCost;
+          drawRows(currentRows);
+        } else {
+          rowA.magnets = oldRowA;
+          rowB.magnets = oldRowB;
+          rowA.total = oldRowA.reduce((s, m) => s + m.width, 0);
+          rowB.total = oldRowB.reduce((s, m) => s + m.width, 0);
+        }
+      }
+      iterationCount++;
+      updateProgressIndicator("Rows: " + currentRows.length);
+    }
+
+    function startHillClimbingNestEqual() {
+      iterationCount = 0;
+      currentRows = computeInitialEqualRows();
+      currentCost = computeCost(currentRows);
+      drawRows(currentRows);
+      updateProgressIndicator("Initial rows: " + currentRows.length);
+      if (hillClimbInterval) clearInterval(hillClimbInterval);
+      hillClimbInterval = setInterval(hillClimbIteration, 50);
+    }
+
+    function stopHillClimbingNestEqual() {
+      if (hillClimbInterval) {
+        clearInterval(hillClimbInterval);
+        hillClimbInterval = null;
+        updateProgressIndicator("Stopped after " + iterationCount + " iterations.");
+      }
+    }
+
+    function magicPadding() {
+      if (!currentRows) {
+        currentRows = computeInitialEqualRows();
+        currentCost = computeCost(currentRows);
+      }
+      let maxTotal = 0;
+      currentRows.forEach(row => { if (row.total > maxTotal) maxTotal = row.total; });
+      currentRows.forEach(row => {
+        if (row.total < maxTotal) {
+          const extra = maxTotal - row.total;
+          const n = row.magnets.length;
+          const delta = extra / (2 * n);
+          row.magnets.forEach(magnet => {
+            let newPadding = magnet.padding + delta;
+            if (newPadding > magnet.maxPadding) newPadding = magnet.maxPadding;
+            magnet.padding = newPadding;
+            magnet.width = magnet.baseWidth + 2 * magnet.padding;
+          });
+          row.total = row.magnets.reduce((sum, m) => sum + m.width, 0);
+        }
+      });
+      currentCost = computeCost(currentRows);
+      drawRows(currentRows);
+      updateProgressIndicator("Magic Padding applied. Max row total: " + maxTotal.toFixed(2));
+    }
+
+    function scaleToFit() {
+      const svg = document.getElementById('magnets');
+      const width = parseFloat(svg.getAttribute('width'));
+      const height = parseFloat(svg.getAttribute('height'));
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    }
+
+    function exportSvg() {
+      const svg = document.getElementById('magnets');
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svg);
+      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "magnets.svg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    async function exportPdf() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const svg = document.getElementById('magnets');
+      if (typeof window.svg2pdf !== 'function') {
+        alert("svg2pdf library is not loaded. Please check your network or CDN link.");
+        return;
+      }
+      window.svg2pdf(svg, doc, { x: 0, y: 0, scale: 1 });
+      doc.save("magnets.pdf");
+    }
+
+    // ---------------------------
+    // Sharing the Output State
+    // ---------------------------
+    function shareOutput() {
+      if (!currentRows) {
+        alert("No optimized state available. Please run an algorithm first.");
+        return;
+      }
+      const stateJSON = JSON.stringify(currentRows);
+      const stateEncoded = btoa(stateJSON);
+      const params = {
+        words: document.getElementById('wordsInput').value,
+        pageWidth: document.getElementById('pageWidth').value,
+        pageHeight: document.getElementById('pageHeight').value,
+        rectHeight: document.getElementById('rectHeight').value,
+        fontSize: document.getElementById('fontSize').value,
+        baselineOffset: document.getElementById('baselineOffset').value,
+        paddingLR: document.getElementById('paddingLR').value,
+        paddingTolerance: document.getElementById('paddingTolerance').value,
+        fillColor: document.getElementById('fillColor').value,
+        strokeColor: document.getElementById('strokeColor').value,
+        strokeWidth: document.getElementById('strokeWidth').value,
+        fontFamily: document.getElementById('fontFamily').value,
+        state: stateEncoded
+      };
+      const query = Object.keys(params)
+        .map(key => key + '=' + encodeURIComponent(params[key]))
+        .join('&');
+      history.replaceState(null, '', '?' + query);
+      const shareUrl = window.location.href;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert("Output state copied to clipboard:\n" + shareUrl);
+        }, () => {
+          alert("Output state added to the URL:\n" + shareUrl);
+        });
+      } else {
+        const tempInput = document.createElement('input');
+        tempInput.value = shareUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert("Output state copied to clipboard:\n" + shareUrl);
+      }
+      // Hide the settings panel and show minimal actions.
+      document.getElementById('settingsPanel').classList.add('w3-hide');
+      document.getElementById('minimalActions').classList.remove('w3-hide');
+    }
+
+    // ---------------------------
+    // Interface Adjustment for Shared State
+    // ---------------------------
+    function updateInterfaceForState() {
+      // Use a simple check for "state=" in the URL
+      if (window.location.search.indexOf("state=") !== -1) {
+        document.getElementById('settingsPanel').classList.add('w3-hide');
+        document.getElementById('minimalActions').classList.remove('w3-hide');
+      } else {
+        document.getElementById('settingsPanel').classList.remove('w3-hide');
+        document.getElementById('minimalActions').classList.add('w3-hide');
+      }
+    }
+
+    // Toggle settings panel when "Edit text / parameters" is clicked.
+    function toggleSettingsPanel() {
+      const panel = document.getElementById('settingsPanel');
+      panel.classList.toggle('w3-hide');
+    }
+
+    // ---------------------------
+    // Initialization
+    // ---------------------------
+    window.addEventListener('load', () => {
+      loadParametersFromURL();
+      addParameterListeners();
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('state')) {
+        drawRows(currentRows);
+      } else {
+        generateMagnets();
+      }
+      updateURLParameters();
+      updateInterfaceForState();
+    });
+
+    // ---------------------------
+    // Button Event Handlers
+    // ---------------------------
+    document.getElementById('generateBtn').addEventListener('click', generateMagnets);
+    document.getElementById('nestEqualBtn').addEventListener('click', () => {
+      stopHillClimbingNestEqual();
+      currentRows = computeInitialEqualRows();
+      currentCost = computeCost(currentRows);
+      iterationCount = 0;
+      drawRows(currentRows);
+      updateProgressIndicator("Initial rows: " + currentRows.length);
+    });
+    document.getElementById('startIterBtn').addEventListener('click', startHillClimbingNestEqual);
+    document.getElementById('stopIterBtn').addEventListener('click', stopHillClimbingNestEqual);
+    document.getElementById('magicPaddingBtn').addEventListener('click', magicPadding);
+    document.getElementById('shareOutputBtn').addEventListener('click', shareOutput);
+    document.getElementById('scaleBtn').addEventListener('click', scaleToFit);
+    document.getElementById('exportSvgBtn').addEventListener('click', exportSvg);
+    document.getElementById('exportPdfBtn').addEventListener('click', exportPdf);
+    // Minimal action buttons.
+    document.getElementById('minimalExportSvgBtn').addEventListener('click', exportSvg);
+    document.getElementById('minimalExportPdfBtn').addEventListener('click', exportPdf);
+    document.getElementById('minimalEditButton').addEventListener('click', toggleSettingsPanel);
+
+    function startHillClimbingNestEqual() {
+      iterationCount = 0;
+      currentRows = computeInitialEqualRows();
+      currentCost = computeCost(currentRows);
+      drawRows(currentRows);
+      updateProgressIndicator("Initial rows: " + currentRows.length);
+      if (hillClimbInterval) clearInterval(hillClimbInterval);
+      hillClimbInterval = setInterval(hillClimbIteration, 50);
+    }
+
+    function stopHillClimbingNestEqual() {
+      if (hillClimbInterval) {
+        clearInterval(hillClimbInterval);
+        hillClimbInterval = null;
+        updateProgressIndicator("Stopped after " + iterationCount + " iterations.");
+      }
+    }
+  </script>
+</body>
+</html>
